@@ -23,7 +23,6 @@
 #include "templ-pkt.h"          /* packet template, that we use to send */
 #include "rawsock.h"            /* api on top of Linux, Windows, Mac OS X*/
 #include "logger.h"             /* adjust with -v command-line opt */
-#include "main-status.h"        /* printf() regular status updates */
 #include "main-throttle.h"      /* rate limit */
 #include "main-dedup.h"         /* ignore duplicate responses */
 #include "main-ptrace.h"        /* for nmap --packet-trace feature */
@@ -1072,7 +1071,6 @@ main_scan(struct Masscan *masscan)
     uint64_t range;
     unsigned index;
     time_t now = time(0);
-    struct Status status;
     uint64_t min_index = UINT64_MAX;
     struct MassVulnCheck *vulncheck = NULL;
 
@@ -1310,9 +1308,6 @@ main_scan(struct Masscan *masscan)
     /*
      * Now wait for <ctrl-c> to be pressed OR for threads to exit
      */
-    LOG(1, "THREAD: status: starting thread\n");
-    status_start(&status);
-    status.is_infinite = masscan->is_infinite;
     while (!is_tx_done && masscan->output.is_status_updates) {
         unsigned i;
         double rate = 0;
@@ -1343,15 +1338,6 @@ main_scan(struct Masscan *masscan)
             /* Note: This is how we can tell the scan has ended */
             is_tx_done = 1;
         }
-
-        /*
-         * update screen about once per second with statistics,
-         * namely packets/second.
-         */
-        if (masscan->output.is_status_updates)
-            status_print(&status, min_index, range, rate,
-                total_tcbs, total_synacks, total_syns,
-                0);
 
         /* Sleep for almost a second */
         pixie_mssleep(750);
@@ -1409,9 +1395,6 @@ main_scan(struct Masscan *masscan)
         }
 
         if (masscan->output.is_status_updates) {
-            status_print(&status, min_index, range, rate,
-                total_tcbs, total_synacks, total_syns,
-                masscan->wait - (time(0) - now));
 
             for (i=0; i<masscan->nic_count; i++) {
                 struct ThreadPair *parms = &parms_array[i];
@@ -1455,7 +1438,6 @@ main_scan(struct Masscan *masscan)
     /*
      * Now cleanup everything
      */
-    status_finish(&status);
 
     if (!masscan->output.is_status_updates) {
         uint64_t usec_now = pixie_gettime();

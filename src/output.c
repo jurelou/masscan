@@ -736,10 +736,7 @@ output_report_status(struct Output *out, time_t timestamp, int status,
 
         switch (ip_proto) {
         case 0: /* ARP */
-            count = fprintf(stdout, "Discovered %s port %u/%s on %u.%u.%u.%u (%02x:%02x:%02x:%02x:%02x:%02x) %s",
-                        status_string(status),
-                        port,
-                        name_from_ip_proto(ip_proto),
+            count = fprintf(stdout, "%u.%u.%u.%u (%02x:%02x:%02x:%02x:%02x:%02x) %s",
                         (ip>>24)&0xFF,
                         (ip>>16)&0xFF,
                         (ip>> 8)&0xFF,
@@ -749,10 +746,7 @@ output_report_status(struct Output *out, time_t timestamp, int status,
                         );
             break;
         default:
-            count = fprintf(stdout, "Discovered %s port %u/%s on %u.%u.%u.%u",
-                        status_string(status),
-                        port,
-                        name_from_ip_proto(ip_proto),
+            count = fprintf(stdout, "%u.%u.%u.%u",
                         (ip>>24)&0xFF,
                         (ip>>16)&0xFF,
                         (ip>> 8)&0xFF,
