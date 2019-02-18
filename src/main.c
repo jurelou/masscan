@@ -203,7 +203,6 @@ flush_packets(struct Adapter *adapter,
         for (err=1; err; ) {
             err = rte_ring_sp_enqueue(packet_buffers, p);
             if (err) {
-                LOG(0, "transmit queue full (should be impossible)\n");
                 pixie_usleep(10000);
             }
         }
@@ -275,7 +274,6 @@ transmit_thread(void *v) /*aka. scanning_thread() */
     uint64_t *status_syn_count;
     uint64_t entropy = masscan->seed;
 
-    LOG(1, "THREAD: xmit: starting thread #%u\n", parms->nic_index);
 
     if (!masscan->targets.is_sorted)
         rangelist_sort(&masscan->targets);
@@ -326,7 +324,6 @@ infinite:
     /* -----------------
      * the main loop
      * -----------------*/
-    LOG(3, "THREAD: xmit: starting main loop: [%llu..%llu]\n", start, end);
     for (i=start; i<end; ) {
         uint64_t batch_size;
 
@@ -468,7 +465,6 @@ infinite:
     /*
      * Wait until the receive thread realizes the scan is over
      */
-    LOG(1, "THREAD: xmit done, waiting for receive thread to realize this\n");
 
     /*
      * We are done transmitting. However, response packets will take several
@@ -506,7 +502,6 @@ infinite:
 
     /* Thread is about to exit */
     parms->done_transmitting = 1;
-    LOG(1, "THREAD: xmit: stopping thread #%u\n", parms->nic_index);
 }
 
 
@@ -555,7 +550,6 @@ receive_thread(void *v)
     *status_tcb_count = 0;
     parms->total_tcbs = status_tcb_count;
 
-    LOG(1, "THREAD: recv: starting thread #%u\n", parms->nic_index);
     
     /* Lock this thread to a CPU. Transmit threads are on even CPUs,
      * receive threads on odd CPUs */
@@ -700,7 +694,6 @@ receive_thread(void *v)
      * Receive packets. This is where we catch any responses and print
      * them to the terminal.
      */
-    LOG(1, "THREAD: recv: starting main loop\n");
     while (!is_rx_done) {
         int status;
         unsigned length;
@@ -997,7 +990,6 @@ receive_thread(void *v)
     }
 
 
-    LOG(1, "THREAD: recv: stopping thread #%u\n", parms->nic_index);
     
     /*
      * cleanup
@@ -1279,31 +1271,6 @@ main_scan(struct Masscan *masscan)
     /*
      * Print helpful text
      */
-    {
-        char buffer[80];
-        struct tm x;
-
-        now = time(0);
-        gmtime_s(&x, &now);
-        strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M:%S GMT", &x);
-        LOG(0, "\nStarting masscan " MASSCAN_VERSION " (http://bit.ly/14GZzcT) at %s\n", buffer);
-
-        if (count_ports == 1 && \
-            masscan->ports.list->begin == Templ_ICMP_echo && \
-            masscan->ports.list->end == Templ_ICMP_echo)
-            { /* ICMP only */
-                LOG(0, " -- forced options: -sn -n --randomize-hosts -v --send-eth\n");
-                LOG(0, "Initiating ICMP Echo Scan\n");
-                LOG(0, "Scanning %u hosts\n",(unsigned)count_ips);
-             }
-        else /* This could actually also be a UDP only or mixed UDP/TCP/ICMP scan */
-            {
-                LOG(0, " -- forced options: -sS -Pn -n --randomize-hosts -v --send-eth\n");
-                LOG(0, "Initiating SYN Stealth Scan\n");
-                LOG(0, "Scanning %u hosts [%u port%s/host]\n",
-                    (unsigned)count_ips, (unsigned)count_ports, (count_ports==1)?"":"s");
-            }
-    }
 
     /*
      * Now wait for <ctrl-c> to be pressed OR for threads to exit

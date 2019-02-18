@@ -1934,9 +1934,9 @@ masscan_set_parameter(struct Masscan *masscan,
         LOG(1, "EXCLUDING: %s\n", value);
         ranges_from_file(&masscan->exclude_ip, value);
         count2 = masscan->exclude_ip.count;
-        if (count2 - count1)
-        fprintf(stderr, "%s: excluding %u ranges from file\n",
-                value, count2 - count1);
+
+
+
     } else if (EQUALS("heartbleed", name)) {
         masscan->is_heartbleed = 1;
         masscan_set_parameter(masscan, "no-capture", "cert");
