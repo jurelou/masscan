@@ -746,11 +746,12 @@ output_report_status(struct Output *out, time_t timestamp, int status,
                         );
             break;
         default:
-            count = fprintf(stdout, "%u.%u.%u.%u",
+            count = fprintf(stdout, "%u.%u.%u.%u %u",
                         (ip>>24)&0xFF,
                         (ip>>16)&0xFF,
                         (ip>> 8)&0xFF,
-                        (ip>> 0)&0xFF
+                        (ip>> 0)&0xFF,
+                        port
                         );
         }
 
